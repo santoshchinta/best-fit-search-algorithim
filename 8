@@ -1,0 +1,75 @@
+from queue import PriorityQueue
+
+# Define the goal state and the initial state
+goal_state = [[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 0]]  # 0 represents the empty tile
+
+initial_state = [[2, 8, 3],
+                 [1, 6, 4],
+                 [7, 0, 5]]  # Change this to the initial state you want to solve
+
+# Function to find the Manhattan distance between two points
+def manhattan_distance(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)
+
+# Function to find the heuristic value for the state
+def heuristic(state):
+    distance = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0:
+                x_goal, y_goal = (state[i][j] - 1) // 3, (state[i][j] - 1) % 3
+                distance += manhattan_distance(i, j, x_goal, y_goal)
+    return distance
+
+# Function to find the possible moves for the empty tile
+def possible_moves(state):
+    moves = []
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                if i > 0:
+                    new_state = [row[:] for row in state]
+                    new_state[i][j], new_state[i - 1][j] = new_state[i - 1][j], new_state[i][j]
+                    moves.append(new_state)
+                if i < 2:
+                    new_state = [row[:] for row in state]
+                    new_state[i][j], new_state[i + 1][j] = new_state[i + 1][j], new_state[i][j]
+                    moves.append(new_state)
+                if j > 0:
+                    new_state = [row[:] for row in state]
+                    new_state[i][j], new_state[i][j - 1] = new_state[i][j - 1], new_state[i][j]
+                    moves.append(new_state)
+                if j < 2:
+                    new_state = [row[:] for row in state]
+                    new_state[i][j], new_state[i][j + 1] = new_state[i][j + 1], new_state[i][j]
+                    moves.append(new_state)
+                return moves
+
+# Best-first search algorithm
+def best_first_search(initial_state):
+    visited = set()
+    queue = PriorityQueue()
+    queue.put((heuristic(initial_state), initial_state))
+
+    while not queue.empty():
+        current_state = queue.get()[1]
+        if current_state == goal_state:
+            return current_state
+
+        visited.add(tuple(map(tuple, current_state)))
+        for move in possible_moves(current_state):
+            if tuple(map(tuple, move)) not in visited:
+                queue.put((heuristic(move), move))
+
+    return None
+
+# Solve the 8-puzzle using best-first search
+solution = best_first_search(initial_state)
+if solution:
+    print("Solution found:")
+    for row in solution:
+        print(row)
+else:
+    print("No solution found.")
